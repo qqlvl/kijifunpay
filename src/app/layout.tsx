@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import "@solana/wallet-adapter-react-ui/styles.css";
 import "./globals.css";
+import { Anton } from "next/font/google";
+import { Navbar } from "@/components/layout/Navbar";
+import { ToastContainer } from "@/components/ui/Toast";
+import { WalletProviders } from "@/components/solana/WalletProviders";
+import "@solana/wallet-adapter-react-ui/styles.css";
+
 
 // SF Pro Display — основные веса (добавь/убери по вкусу)
 const sfPro = localFont({
@@ -25,16 +32,26 @@ const offbit = localFont({
   display: "swap",
 });
 
+const anton = Anton({
+  subsets: ["latin"],
+  weight: ["400"], // у Anton всего один вес
+  variable: "--font-anton",
+});
+
 export const metadata: Metadata = {
   title: "KIJIfunPay",
   description: "Solana чек-сервис",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  // Критично: на <html> должны быть ОТ НАС переменные, а не geist
   return (
-    <html lang="en" className={`${sfPro.variable} ${offbit.variable}`}>
-      <body className="font-sans">{children}</body>
+    <html lang="en" className={`${sfPro.variable} ${offbit.variable} ${anton.variable}`}>
+      <body className="font-sans">
+        <WalletProviders>
+          <Navbar />
+          {children}
+        </WalletProviders>
+      </body>
     </html>
   );
 }

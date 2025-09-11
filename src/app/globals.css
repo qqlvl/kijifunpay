@@ -8,6 +8,8 @@
   /* Акцентный шрифт (будет класс font-display) */
   --font-display: var(--font-offbit), system-ui, sans-serif;
 
+  --font-anton: var(--font-anton), sans-serif;
+
   /* Цвета/примеры, оставь свои если уже есть */
   --color-background: #000000;
   --color-foreground: #ffffff;
@@ -18,4 +20,15 @@
   color: var(--color-foreground);
 }
 
-/* ВАЖНО: никаких font-family здесь! Tailwind сам подставит через .font-sans */
+@layer base {
+  h1 {@apply text-5xl md:text-6xl font-bold font-sans tracking-tight;}
+  h2 {@apply text-4xl md:text-5xl font-semibold font-sans;}
+  h3 {@apply text-2xl md:text-3xl font-medium font-sans;}
+  p  {@apply text-base md:text-lg text-zinc-300;}
+}
+
+/* Акцентный заголовок на OffBit */
+.headline {
+  @apply font-display text-5xl md:text-6xl font-bold tracking-wider uppercase;
+}
+

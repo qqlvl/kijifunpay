@@ -18,6 +18,7 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-sf)", "sans-serif"],   // основной — SF Pro
         offbit: ["var(--font-offbit)", "sans-serif"], // акцентный — OffBit
+        anton: ["var(--font-anton)", "sans-serif"],   // логотип/хедлайн
       },
     },
   },
