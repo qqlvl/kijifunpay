@@ -39,8 +39,8 @@ const anton = Anton({
 });
 
 export const metadata: Metadata = {
-  title: "KIJIfunPay",
-  description: "Solana чек-сервис",
+  title: "kijipay",
+  description: "Solana",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
