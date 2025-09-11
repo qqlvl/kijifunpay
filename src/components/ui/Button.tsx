@@ -1,3 +1,4 @@
+// src/components/ui/Button.tsx
 import { ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/cn";
 
@@ -25,10 +26,12 @@ export function Button({
   className,
   variant = "primary",
   size = "md",
+  type = "button",          // <<< ВАЖНО: больше не submit по умолчанию
   ...props
 }: Props) {
   return (
     <button
+      type={type}
       className={cn(base, variants[variant], sizes[size], className)}
       {...props}
     />

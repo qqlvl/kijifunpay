@@ -21,13 +21,13 @@ export function WalletProviders({ children }: { children: React.ReactNode }) {
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-    <WalletProvider
-    wallets={[new PhantomWalletAdapter(), new SolflareWalletAdapter({ network: "devnet" })]}
-    autoConnect={false}
-    onError={(e) => console.debug("Wallet error:", e?.message ?? e)}
-    >
-    <WalletModalProvider>{children}</WalletModalProvider>
-    </WalletProvider>
+<WalletProvider
+  wallets={[new PhantomWalletAdapter() /*, new SolflareWalletAdapter({ network: "devnet" }) */]}
+  autoConnect={false}
+  onError={(e) => console.debug("Wallet error:", e?.message ?? e)}
+>
+  <WalletModalProvider>{children}</WalletModalProvider>
+</WalletProvider>
     </ConnectionProvider>
   );
 }

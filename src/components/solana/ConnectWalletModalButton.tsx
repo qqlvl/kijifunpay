@@ -1,3 +1,4 @@
+// src/components/solana/ConnectWalletModalButton.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 
 const PHANTOM  = "Phantom"  as WalletName;
-// Если Solflare не нужен — можно вообще убрать вторую кнопку и сам адаптер из провайдера
+// если Solflare не нужен — можно убрать вообще
 const SOLFLARE = "Solflare" as WalletName;
 
 const hasPhantom = () =>
@@ -23,7 +24,7 @@ const short = (k: string) => `${k.slice(0, 4)}…${k.slice(-4)}`;
 export function ConnectWalletModalButton() {
   const { select, connect, disconnect, connecting, connected, publicKey, wallet } = useWallet();
   const [open, setOpen] = useState(false);
-  const [err, setErr] = useState<string>("");
+  const [err, setErr] = useState("");
 
   useEffect(() => {
     if (connected) setOpen(false);
@@ -32,14 +33,15 @@ export function ConnectWalletModalButton() {
   async function handleConnect(name: WalletName) {
     setErr("");
     try {
-      setOpen(false);                 // 1) закрываем модалку заранее
-      await select(name);             // 2) выбираем адаптер
-      await new Promise(r => setTimeout(r, 0)); // 3) ждём следующий тик
-      await connect();                // 4) подключаемся
+      // не закрываем модалку до успешного коннекта — меньше "миганий"
+      await select(name);
+      // даём стейту провайдера переключиться
+      await new Promise((r) => setTimeout(r, 100));   // 100мс достаточно стабильно
+      await connect();
+      setOpen(false);
     } catch (e: any) {
       console.debug("Wallet connect error:", e?.message ?? e);
       setErr(e?.message ?? "Failed to connect");
-      setOpen(true); // при ошибке вернём модалку
     }
   }
 
@@ -74,7 +76,9 @@ export function ConnectWalletModalButton() {
             Phantom {!hasPhantom() && "(not installed)"}
           </Button>
 
-          {/* Если Solflare не нужен -- просто закомментируй блок ниже */}
+          {/* УБРАЛИ ссылку на Solflare. Оставь кнопку или убери её вовсе: */}
+          {/* Закомментируй блок ниже, если Solflare не нужен */}
+          {/* 
           <Button
             variant="secondary"
             onClick={() => handleConnect(SOLFLARE)}
@@ -82,6 +86,7 @@ export function ConnectWalletModalButton() {
           >
             Solflare {!hasSolflare() && "(not installed)"}
           </Button>
+          */}
 
           {err && <p className="text-sm text-red-400 mt-1">{err}</p>}
 
