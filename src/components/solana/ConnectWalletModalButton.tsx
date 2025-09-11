@@ -1,31 +1,48 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import type { WalletName } from "@solana/wallet-adapter-base";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 
-function short(key: string) {
-  return `${key.slice(0, 4)}…${key.slice(-4)}`;
-}
+const PHANTOM  = "Phantom"  as WalletName;
+// Если Solflare не нужен — можно вообще убрать вторую кнопку и сам адаптер из провайдера
+const SOLFLARE = "Solflare" as WalletName;
 
-// простые проверки наличия расширений
-function phantomInstalled() {
-  return typeof window !== "undefined" && (window as any).solana?.isPhantom;
-}
-function solflareInstalled() {
-  return typeof window !== "undefined" && (window as any).solflare?.isSolflare;
-}
+const hasPhantom = () =>
+  typeof window !== "undefined" &&
+  (((window as any).solana && (window as any).solana.isPhantom) ||
+    (window as any).phantom?.solana?.isPhantom);
+
+const hasSolflare = () =>
+  typeof window !== "undefined" && (window as any).solflare?.isSolflare;
+
+const short = (k: string) => `${k.slice(0, 4)}…${k.slice(-4)}`;
 
 export function ConnectWalletModalButton() {
-  const { select, connecting, connected, publicKey, disconnect, wallet } = useWallet();
+  const { select, connect, disconnect, connecting, connected, publicKey, wallet } = useWallet();
   const [open, setOpen] = useState(false);
+  const [err, setErr] = useState<string>("");
 
   useEffect(() => {
     if (connected) setOpen(false);
   }, [connected]);
 
-  // Подключено — показываем адрес + Disconnect (единый стиль)
+  async function handleConnect(name: WalletName) {
+    setErr("");
+    try {
+      setOpen(false);                 // 1) закрываем модалку заранее
+      await select(name);             // 2) выбираем адаптер
+      await new Promise(r => setTimeout(r, 0)); // 3) ждём следующий тик
+      await connect();                // 4) подключаемся
+    } catch (e: any) {
+      console.debug("Wallet connect error:", e?.message ?? e);
+      setErr(e?.message ?? "Failed to connect");
+      setOpen(true); // при ошибке вернём модалку
+    }
+  }
+
   if (connected && publicKey) {
     return (
       <div className="flex items-center gap-3">
@@ -40,7 +57,6 @@ export function ConnectWalletModalButton() {
     );
   }
 
-  // Не подключено — одна кнопка + модалка выбора
   return (
     <>
       <Button size="sm" onClick={() => setOpen(true)} disabled={connecting}>
@@ -49,20 +65,26 @@ export function ConnectWalletModalButton() {
 
       <Modal open={open} onClose={() => setOpen(false)}>
         <h3 className="text-xl font-semibold mb-4">Select a wallet</h3>
+
         <div className="grid gap-2">
           <Button
-            onClick={() => select("Phantom")}
-            disabled={connecting || !phantomInstalled()}
+            onClick={() => handleConnect(PHANTOM)}
+            disabled={connecting || !hasPhantom()}
           >
-            Phantom {!phantomInstalled() && "(not installed)"}
+            Phantom {!hasPhantom() && "(not installed)"}
           </Button>
+
+          {/* Если Solflare не нужен -- просто закомментируй блок ниже */}
           <Button
             variant="secondary"
-            onClick={() => select("Solflare")}
-            disabled={connecting || !solflareInstalled()}
+            onClick={() => handleConnect(SOLFLARE)}
+            disabled={connecting || !hasSolflare()}
           >
-            Solflare {!solflareInstalled() && "(not installed)"}
+            Solflare {!hasSolflare() && "(not installed)"}
           </Button>
+
+          {err && <p className="text-sm text-red-400 mt-1">{err}</p>}
+
           <Button variant="ghost" onClick={() => setOpen(false)}>
             Cancel
           </Button>

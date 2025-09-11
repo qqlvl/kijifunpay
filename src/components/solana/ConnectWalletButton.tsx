@@ -2,20 +2,23 @@
 
 import { useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import type { WalletName } from "@solana/wallet-adapter-base"; // << важное добавление
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 
+// Брендированные имена адаптеров:
+const PHANTOM  = "Phantom"  as WalletName;
+const SOLFLARE = "Solflare" as WalletName;
+
 const hasPhantom = () =>
   typeof window !== "undefined" &&
-  // оба варианта проверки встречаются
-  ((window as any).solana?.isPhantom || (window as any).phantom?.solana?.isPhantom);
+  (((window as any).solana && (window as any).solana.isPhantom) ||
+    (window as any).phantom?.solana?.isPhantom);
 
 const hasSolflare = () =>
   typeof window !== "undefined" && (window as any).solflare?.isSolflare;
 
-function short(k: string) {
-  return `${k.slice(0, 4)}…${k.slice(-4)}`;
-}
+const short = (k: string) => `${k.slice(0, 4)}…${k.slice(-4)}`;
 
 export function ConnectWalletModalButton() {
   const { select, connect, disconnect, connecting, connected, publicKey, wallet } = useWallet();
@@ -26,11 +29,11 @@ export function ConnectWalletModalButton() {
     if (connected) setOpen(false);
   }, [connected]);
 
-  async function handleConnect(name: "Phantom" | "Solflare") {
+  async function handleConnect(name: WalletName) {
     setErr("");
     try {
-      await select(name);   // выбрать адаптер
-      await connect();      // и подключиться
+      await select(name);   // выбрать адаптер (WalletName!)
+      await connect();      // подключиться
     } catch (e: any) {
       console.debug("Wallet connect error:", e?.message ?? e);
       setErr(e?.message ?? "Failed to connect");
@@ -62,7 +65,7 @@ export function ConnectWalletModalButton() {
 
         <div className="grid gap-2">
           <Button
-            onClick={() => handleConnect("Phantom")}
+            onClick={() => handleConnect(PHANTOM)}
             disabled={connecting || !hasPhantom()}
           >
             Phantom {!hasPhantom() && "(not installed)"}
@@ -70,7 +73,7 @@ export function ConnectWalletModalButton() {
 
           <Button
             variant="secondary"
-            onClick={() => handleConnect("Solflare")}
+            onClick={() => handleConnect(SOLFLARE)}
             disabled={connecting || !hasSolflare()}
           >
             Solflare {!hasSolflare() && "(not installed)"}
@@ -78,7 +81,6 @@ export function ConnectWalletModalButton() {
 
           {err && <p className="text-sm text-red-400 mt-1">{err}</p>}
 
-          {/* ссылки на установки, если нужно */}
           {!hasPhantom() && (
             <a
               className="text-xs text-zinc-400 underline"
