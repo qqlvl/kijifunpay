@@ -1,22 +1,21 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-/* Можно оставить твои переменные цветов, но БЕЗ font-family на body */
+/* Токены Tailwind v4 */
+@theme inline {
+  /* Делаем системный sans = наш SF Pro */
+  --font-sans: var(--font-sf), system-ui, sans-serif;
+
+  /* Акцентный шрифт (будет класс font-display) */
+  --font-display: var(--font-offbit), system-ui, sans-serif;
+
+  /* Цвета/примеры, оставь свои если уже есть */
+  --color-background: #000000;
+  --color-foreground: #ffffff;
+}
+
 :root {
-  --background: #000000;
-  --foreground: #171717;
+  background: var(--color-background);
+  color: var(--color-foreground);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  /* font-family НЕ указываем тут */
-}
+/* ВАЖНО: никаких font-family здесь! Tailwind сам подставит через .font-sans */
