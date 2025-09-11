@@ -1,10 +1,8 @@
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-zinc-900 via-neutral-900 to-black text-white flex items-center justify-center">
-      <div className="p-8 rounded-2xl bg-white/5 backdrop-blur border border-white/10">
-        <h1 className="text-3xl font-semibold tracking-tight">sol-checks</h1>
-        <p className="mt-2 text-zinc-300">Next.js + Tailwind готово ✅</p>
-      </div>
-    </main>
-  )
+    <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white space-y-6">
+      <h1 className="text-5xl font-bold font-sans">Это SF Pro Display</h1>
+      <h2 className="text-5xl font-offbit">А это OffBitTrial</h2>
+    </div>
+  );
 }
