@@ -1,42 +1,64 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import type { WalletName } from "@solana/wallet-adapter-base"; // << важное добавление
+import type { WalletName } from "@solana/wallet-adapter-base";
 import { Button } from "@/components/ui/Button";
-import { Modal } from "@/components/ui/Modal";
 
-// Брендированные имена адаптеров:
-const PHANTOM  = "Phantom"  as WalletName;
-const SOLFLARE = "Solflare" as WalletName;
+const PHANTOM = "Phantom" as WalletName;
 
 const hasPhantom = () =>
   typeof window !== "undefined" &&
   (((window as any).solana && (window as any).solana.isPhantom) ||
     (window as any).phantom?.solana?.isPhantom);
 
-const hasSolflare = () =>
-  typeof window !== "undefined" && (window as any).solflare?.isSolflare;
-
 const short = (k: string) => `${k.slice(0, 4)}…${k.slice(-4)}`;
 
-export function ConnectWalletModalButton() {
-  const { select, connect, disconnect, connecting, connected, publicKey, wallet } = useWallet();
-  const [open, setOpen] = useState(false);
-  const [err, setErr] = useState<string>("");
+export function ConnectWalletButton() {
+  const { select, connect, disconnect, connected, connecting, publicKey, wallet } = useWallet();
+  const [err, setErr] = useState("");
+  const busy = useRef(false); // защита от повторных кликов
 
   useEffect(() => {
-    if (connected) setOpen(false);
-  }, [connected]);
+    // сбрасываем ошибку когда начинаем коннектиться/отключились
+    if (connecting || !connected) setErr("");
+  }, [connecting, connected]);
 
-  async function handleConnect(name: WalletName) {
+  async function handleConnect() {
+    if (busy.current || connecting) return;
+    if (!hasPhantom()) return; // нет расширения — кнопку можно сделать disabled выше
+    busy.current = true;
     setErr("");
+
     try {
-      await select(name);   // выбрать адаптер (WalletName!)
-      await connect();      // подключиться
+      // 1) выбираем адаптер
+      await select(PHANTOM);
+
+      // 2) ждём, пока контекст реально переключит активный адаптер
+      for (let i = 0; i < 20; i++) {
+        if (wallet?.adapter?.name === PHANTOM) break;
+        await new Promise((r) => setTimeout(r, 25));
+      }
+
+      // 3) коннектимся НАПРЯМУЮ через адаптер (надёжнее, чем хук connect())
+      const adapter = wallet?.adapter;
+      if (!adapter) throw new Error("Wallet adapter not ready");
+
+      // если уже подключён — просто выходим
+      // @ts-ignore в разных версиях поле может существовать
+      if (adapter.connected) return;
+
+      await adapter.connect();
+
+      // альтернативно можно: await connect(); — но direct connect стабильнее
     } catch (e: any) {
-      console.debug("Wallet connect error:", e?.message ?? e);
-      setErr(e?.message ?? "Failed to connect");
+      // 4001 — пользователь отменил — не считаем ошибкой
+      if (e?.code !== 4001) {
+        console.debug("Wallet connect error:", e?.message ?? e);
+        setErr(e?.message ?? "Failed to connect");
+      }
+    } finally {
+      busy.current = false;
     }
   }
 
@@ -55,58 +77,14 @@ export function ConnectWalletModalButton() {
   }
 
   return (
-    <>
-      <Button size="sm" onClick={() => setOpen(true)} disabled={connecting}>
+    <div className="flex flex-col items-end">
+      <Button size="sm" onClick={handleConnect} disabled={connecting || !hasPhantom()}>
         {connecting ? "Connecting..." : "Connect Wallet"}
       </Button>
-
-      <Modal open={open} onClose={() => setOpen(false)}>
-        <h3 className="text-xl font-semibold mb-4">Select a wallet</h3>
-
-        <div className="grid gap-2">
-          <Button
-            onClick={() => handleConnect(PHANTOM)}
-            disabled={connecting || !hasPhantom()}
-          >
-            Phantom {!hasPhantom() && "(not installed)"}
-          </Button>
-
-          <Button
-            variant="secondary"
-            onClick={() => handleConnect(SOLFLARE)}
-            disabled={connecting || !hasSolflare()}
-          >
-            Solflare {!hasSolflare() && "(not installed)"}
-          </Button>
-
-          {err && <p className="text-sm text-red-400 mt-1">{err}</p>}
-
-          {!hasPhantom() && (
-            <a
-              className="text-xs text-zinc-400 underline"
-              href="https://phantom.app/download"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Install Phantom
-            </a>
-          )}
-          {!hasSolflare() && (
-            <a
-              className="text-xs text-zinc-400 underline"
-              href="https://solflare.com/download"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Install Solflare
-            </a>
-          )}
-
-          <Button variant="ghost" onClick={() => setOpen(false)}>
-            Cancel
-          </Button>
-        </div>
-      </Modal>
-    </>
+      {!hasPhantom() && (
+        <span className="mt-1 text-xs text-zinc-500">Install Phantom to connect</span>
+      )}
+      {err && <span className="mt-1 text-xs text-red-400">{err}</span>}
+    </div>
   );
 }

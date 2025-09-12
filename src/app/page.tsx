@@ -15,7 +15,7 @@ export default function Home() {
         </p>
         <div className="flex items-center justify-center gap-4">
           <Button size="lg">Create Check</Button>
-          <Button variant="secondary" size="lg">Connect Wallet</Button>
+          <Button variant="secondary" size="lg">Create Invoice</Button>
         </div>
         </section>
 

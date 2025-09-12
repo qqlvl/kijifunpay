@@ -7,6 +7,9 @@ import { Navbar } from "@/components/layout/Navbar";
 import { ToastContainer } from "@/components/ui/Toast";
 import { WalletProviders } from "@/components/solana/WalletProviders";
 import "@solana/wallet-adapter-react-ui/styles.css";
+import Script from "next/script";
+import type { ReactNode } from "react";
+
 
 
 // SF Pro Display — основные веса (добавь/убери по вкусу)
@@ -43,10 +46,20 @@ export const metadata: Metadata = {
   description: "Solana",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${sfPro.variable} ${offbit.variable} ${anton.variable}`}>
-      <body className="font-sans">
+    <html lang="en">
+      <head>
+        {/* Плагин Jupiter должен быть подключен ТОЛЬКО так */}
+        <Script
+          src="https://plugin.jup.ag/plugin-v1.js"
+          strategy="beforeInteractive"
+          data-preload
+          defer
+        />
+      </head>
+      <body className="bg-black text-white">
+        {/* ВАЖНО: провайдеры оборачивают и Navbar, и контент */}
         <WalletProviders>
           <Navbar />
           {children}
