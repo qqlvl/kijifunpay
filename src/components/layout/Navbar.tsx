@@ -16,8 +16,12 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <JupiterModalLauncher className="inline-flex">
-            <Button variant="secondary" size="sm">Swap</Button>
+          <JupiterModalLauncher>
+            {(open) => (
+              <Button variant="secondary" size="sm" onClick={open}>
+                Swap
+              </Button>
+            )}
           </JupiterModalLauncher>
           <ConnectWalletModalButton />
         </div>
